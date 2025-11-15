@@ -1,83 +1,84 @@
 let Assignment = require('../model/assignment');
 
 // Récupérer tous les assignments avec pagination (GET)
-function getAssignments(req, res){
-    var aggregateQuery = Assignment.aggregate();
+async function getAssignments(req, res){
+    try {
+        var aggregateQuery = Assignment.aggregate();
 
-    Assignment.aggregatePaginate(
-        aggregateQuery,
-        {
-            page: parseInt(req.query.page) || 1,
-            limit: parseInt(req.query.limit) || 10,
-        },
-        (err, assignments) => {
-            if(err) {
-                res.send(err);
+        const assignments = await Assignment.aggregatePaginate(
+            aggregateQuery,
+            {
+                page: parseInt(req.query.page) || 1,
+                limit: parseInt(req.query.limit) || 10,
             }
-            res.send(assignments);
-        }
-    );
+        );
+        res.send(assignments);
+    } catch (err) {
+        res.status(500).send(err);
+    }
 }
 
 // Récupérer un assignment par son id (GET)
-function getAssignment(req, res){
-    let assignmentId = req.params.id;
-    
-    Assignment.findOne({id: assignmentId}, (err, assignment) =>{
-        if(err){res.send(err)}
+async function getAssignment(req, res){
+    try {
+        let assignmentId = req.params.id;
+        const assignment = await Assignment.findOne({id: assignmentId});
         res.json(assignment);
-    })
+    } catch (err) {
+        res.status(500).send(err);
+    }
 }
+
 // Ajout d'un assignment (POST)
-function postAssignment(req, res){
-    let assignment = new Assignment();
-    assignment.id = req.body.id;
-    assignment.nom = req.body.nom;
-    assignment.dateDeRendu = req.body.dateDeRendu;
-    assignment.rendu = req.body.rendu;
+async function postAssignment(req, res){
+    try {
+        let assignment = new Assignment();
+        assignment.id = req.body.id;
+        assignment.nom = req.body.nom;
+        assignment.dateDeRendu = req.body.dateDeRendu;
+        assignment.rendu = req.body.rendu;
 
-    console.log("POST assignment reçu :");
-    console.log(assignment)
+        console.log("POST assignment reçu :");
+        console.log(assignment);
 
-    assignment.save( (err) => {
-        if(err){
-            res.send('cant post assignment ', err);
-        }
-        res.json({ message: `${assignment.nom} saved!`})
-    })
+        await assignment.save();
+        res.json({ message: `${assignment.nom} saved!`});
+    } catch (err) {
+        res.status(500).send('cant post assignment ' + err);
+    }
 }
 
 // Update d'un assignment (PUT)
-function updateAssignment(req, res) {
-    console.log("UPDATE recu assignment : ");
-    console.log(req.body);
-    Assignment.findByIdAndUpdate(req.body._id, req.body, {new: true}, (err, assignment) => {
-        if (err) {
-            console.log(err);
-            res.send(err)
-        } else {
-          res.json({message: 'updated'})
-        }
-
-      // console.log('updated ', assignment)
-    });
-
+async function updateAssignment(req, res) {
+    try {
+        console.log("UPDATE recu assignment : ");
+        console.log(req.body);
+        
+        const assignment = await Assignment.findByIdAndUpdate(
+            req.body._id, 
+            req.body, 
+            {new: true}
+        );
+        res.json({message: 'updated'});
+    } catch (err) {
+        console.log(err);
+        res.status(500).send(err);
+    }
 }
 
 // suppression d'un assignment (DELETE)
-function deleteAssignment(req, res) {
-    // req.params.id contains the numeric 'id' field used in our documents (not the MongoDB _id)
-    const assignmentId = parseInt(req.params.id);
-
-    Assignment.findOneAndRemove({ id: assignmentId }, (err, assignment) => {
-        if (err) {
-            return res.status(500).send(err);
-        }
+async function deleteAssignment(req, res) {
+    try {
+        const assignmentId = parseInt(req.params.id);
+        const assignment = await Assignment.findOneAndDelete({ id: assignmentId });
+        
         if (!assignment) {
             return res.status(404).json({ message: 'Assignment not found' });
         }
         return res.json({ message: `${assignment.nom} deleted` });
-    });
+    } catch (err) {
+        return res.status(500).send(err);
+    }
 }
 
 
