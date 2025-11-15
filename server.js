@@ -10,10 +10,9 @@ mongoose.set('debug', true);
 // remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud s
 const uri = 'mongodb+srv://kanefode17_db_user:qWbxrMVWelkxwNeH@ac-f2nkayk.igb2zty.mongodb.net/assignmentsDB?retryWrites=true&w=majority';
 
+// Options modernes pour Mongoose (les anciennes options sont dépréciées)
 const options = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  useFindAndModify:false
+  // useNewUrlParser, useUnifiedTopology et useFindAndModify sont obsolètes avec Mongoose 6+
 };
 
 mongoose.connect(uri, options)
